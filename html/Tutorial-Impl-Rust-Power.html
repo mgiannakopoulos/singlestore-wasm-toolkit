@@ -134,9 +134,26 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="developing-a-simple-example-in-rust"><a class="header" href="#developing-a-simple-example-in-rust">Developing a Simple Example in Rust</a></h1>
+                        <!-- GENERATED FILE; DO NOT CHANGE! -->
+<h1 id="developing-the-power-of-example-in-rust"><a class="header" href="#developing-the-power-of-example-in-rust">Developing the <code>power-of</code> example in Rust</a></h1>
 <h2 id="initialize-your-source-tree"><a class="header" href="#initialize-your-source-tree">Initialize Your Source Tree</a></h2>
-<p>From within a new work directory, run <code>cargo init --vcs none --lib</code>. This will set up a skeletal Rust source tree.</p>
+<p>To setup our project, we'll need to do a few things:</p>
+<ol>
+<li>
+<p>Ensure that you are in a new directory.  It can be called anything you want.</p>
+</li>
+<li>
+<p>In the work directory, run the following to set up a skeltal Rust source tree:</p>
+<pre><code>cargo init --vcs none --lib
+</code></pre>
+</li>
+<li>
+<p>Now, create a special configuration file to tell utilities like the <em>rust-analyzer</em> that the default build target of this project is Wasm.  Run this command:</p>
+<pre><code class="language-bash">mkdir .cargo &amp;&amp; echo -e &quot;[build]\ntarget = \&quot;wasm32-wasi\&quot;\n&quot; &gt; .cargo/config.toml   
+</code></pre>
+</li>
+</ol>
+<h2 id="copy-the-wit-file"><a class="header" href="#copy-the-wit-file">Copy the WIT File</a></h2>
 <p>We’ll need the <code>power.wit</code> file we created <a href="Tutorial-WIT-Power.html">earlier</a>. Copy it into this directory if it is not already there.</p>
 <h2 id="implementing-and-compiling"><a class="header" href="#implementing-and-compiling">Implementing and Compiling</a></h2>
 <p>Now, edit the file called <code>Cargo.toml</code> so that it looks like the following:</p>
@@ -152,10 +169,7 @@ wit-bindgen-rust = { git = &quot;https://github.com/bytecodealliance/wit-bindgen
 crate-type = [&quot;cdylib&quot;]
 </code></pre>
 <p>Now we’re almost ready to roll. Edit the file <code>src/lib.rs</code> and replace its content with this:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>wit_bindgen_rust::export!(&quot;power.wit&quot;);
+<pre><code class="language-rust noplayground">wit_bindgen_rust::export!(&quot;power.wit&quot;);
 struct Power;
 
 impl power::Power for Power {
@@ -167,8 +181,7 @@ impl power::Power for Power {
         res
     }
 }
-<span class="boring">}
-</span></code></pre></pre>
+</code></pre>
 <p>The syntax at the top of the code is boiler-plate. The export macro generates code that declares a trait named after our WIT file (and some other things). So, our main job is here is to implement this trait. If you are curious what the macro actually generates, you can run cargo expand and it will show you the fully expanded source code.</p>
 <p>The WIT IDL is heavily inspired by the Rust language syntax, so it was pretty easy to derive the Rust function signature we needed from the IDL:</p>
 <ul>

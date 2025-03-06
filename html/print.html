@@ -239,9 +239,16 @@ As you work through this tutorial, please be sure to execute your commands <em>i
 </ul>
 </li>
 <li>
+<p>Download and install the cargo-wasi plugin:</p>
+<ul>
+<li><code>cargo install cargo-wasi</code></li>
+</ul>
+</li>
+<li>
 <p><em>(Optional)</em> If you would like to use the testing tool <a href="https://github.com/singlestore-labs/writ"><code>writ</code></a> and the deployment tool <a href="https://github.com/singlestore-labs/pushwasm"><code>pushwasm</code></a>, please follow the installation instructions in their respective repositories and ensure they are in your <code>$PATH</code>.</p>
 </li>
 </ul>
+<p>For a more detailed walkthrough on setting up for local development, also consider checking out David Lee's blog entry <a href="https://www.singlestore.com/blog/locally-create-wsm-udfs-rust-singlestoredb">here</a>.</p>
 <p>Next, let's pick an <a href="Tutorial-Examples.html">example</a> to work through.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
 <p>In this tutorial, we'll walk you through two different examples.</p>
@@ -443,9 +450,26 @@ split-str: func(phrase: string, delim: string) -&gt; list&lt;subphrase&gt;
 <li>To see how to implement and compile the <code>power-of</code> example in Rust, please look <a href="Tutorial-Impl-Rust-Power.html">here</a>.</li>
 <li>To see how to implement and compile the <code>split-str</code> example in Rust, please look <a href="Tutorial-Impl-Rust-Split.html">here</a>.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="developing-a-simple-example-in-rust"><a class="header" href="#developing-a-simple-example-in-rust">Developing a Simple Example in Rust</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><!-- GENERATED FILE; DO NOT CHANGE! -->
+<h1 id="developing-the-power-of-example-in-rust"><a class="header" href="#developing-the-power-of-example-in-rust">Developing the <code>power-of</code> example in Rust</a></h1>
 <h2 id="initialize-your-source-tree"><a class="header" href="#initialize-your-source-tree">Initialize Your Source Tree</a></h2>
-<p>From within a new work directory, run <code>cargo init --vcs none --lib</code>. This will set up a skeletal Rust source tree.</p>
+<p>To setup our project, we'll need to do a few things:</p>
+<ol>
+<li>
+<p>Ensure that you are in a new directory.  It can be called anything you want.</p>
+</li>
+<li>
+<p>In the work directory, run the following to set up a skeltal Rust source tree:</p>
+<pre><code>cargo init --vcs none --lib
+</code></pre>
+</li>
+<li>
+<p>Now, create a special configuration file to tell utilities like the <em>rust-analyzer</em> that the default build target of this project is Wasm.  Run this command:</p>
+<pre><code class="language-bash">mkdir .cargo &amp;&amp; echo -e &quot;[build]\ntarget = \&quot;wasm32-wasi\&quot;\n&quot; &gt; .cargo/config.toml   
+</code></pre>
+</li>
+</ol>
+<h2 id="copy-the-wit-file"><a class="header" href="#copy-the-wit-file">Copy the WIT File</a></h2>
 <p>We’ll need the <code>power.wit</code> file we created <a href="Tutorial-WIT-Power.html">earlier</a>. Copy it into this directory if it is not already there.</p>
 <h2 id="implementing-and-compiling-2"><a class="header" href="#implementing-and-compiling-2">Implementing and Compiling</a></h2>
 <p>Now, edit the file called <code>Cargo.toml</code> so that it looks like the following:</p>
@@ -461,10 +485,7 @@ wit-bindgen-rust = { git = &quot;https://github.com/bytecodealliance/wit-bindgen
 crate-type = [&quot;cdylib&quot;]
 </code></pre>
 <p>Now we’re almost ready to roll. Edit the file <code>src/lib.rs</code> and replace its content with this:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>wit_bindgen_rust::export!(&quot;power.wit&quot;);
+<pre><code class="language-rust noplayground">wit_bindgen_rust::export!(&quot;power.wit&quot;);
 struct Power;
 
 impl power::Power for Power {
@@ -476,8 +497,7 @@ impl power::Power for Power {
         res
     }
 }
-<span class="boring">}
-</span></code></pre></pre>
+</code></pre>
 <p>The syntax at the top of the code is boiler-plate. The export macro generates code that declares a trait named after our WIT file (and some other things). So, our main job is here is to implement this trait. If you are curious what the macro actually generates, you can run cargo expand and it will show you the fully expanded source code.</p>
 <p>The WIT IDL is heavily inspired by the Rust language syntax, so it was pretty easy to derive the Rust function signature we needed from the IDL:</p>
 <ul>
@@ -493,11 +513,28 @@ impl power::Power for Power {
 </code></pre>
 <p>The new Wasm file should be written to <code>target/wasm32-wasi/debug/power.wasm</code>.</p>
 <p>Next, we'll do some <a href="Tutorial-Test-Power.html">testing</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="developing-a-more-complex-udf-in-rust"><a class="header" href="#developing-a-more-complex-udf-in-rust">Developing a More Complex UDF in Rust</a></h1>
-<h1 id="initialize-your-source-tree-1"><a class="header" href="#initialize-your-source-tree-1">Initialize Your Source Tree</a></h1>
-<p>Start by creating a new work directory and initializing it using <code>cargo init --vcs none --lib</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- GENERATED FILE; DO NOT CHANGE! -->
+<h1 id="developing-the-split-str-example-in-rust"><a class="header" href="#developing-the-split-str-example-in-rust">Developing the <code>split-str</code> example in Rust</a></h1>
+<h2 id="initialize-your-source-tree-1"><a class="header" href="#initialize-your-source-tree-1">Initialize Your Source Tree</a></h2>
+<p>To setup our project, we'll need to do a few things:</p>
+<ol>
+<li>
+<p>Ensure that you are in a new directory.  It can be called anything you want.</p>
+</li>
+<li>
+<p>In the work directory, run the following to set up a skeltal Rust source tree:</p>
+<pre><code>cargo init --vcs none --lib
+</code></pre>
+</li>
+<li>
+<p>Now, create a special configuration file to tell utilities like the <em>rust-analyzer</em> that the default build target of this project is Wasm.  Run this command:</p>
+<pre><code class="language-bash">mkdir .cargo &amp;&amp; echo -e &quot;[build]\ntarget = \&quot;wasm32-wasi\&quot;\n&quot; &gt; .cargo/config.toml   
+</code></pre>
+</li>
+</ol>
+<h2 id="copy-the-wit-file-1"><a class="header" href="#copy-the-wit-file-1">Copy the WIT File</a></h2>
 <p>We'll need the <code>split.wit</code> file we created <a href="Tutorial-WIT-Split.html">earlier</a>.  Copy it into this directory if it is not already there.</p>
-<h3 id="implementing-and-compiling-3"><a class="header" href="#implementing-and-compiling-3">Implementing and Compiling</a></h3>
+<h2 id="implementing-and-compiling-3"><a class="header" href="#implementing-and-compiling-3">Implementing and Compiling</a></h2>
 <p>Much of this will be similar to the techniques we used in the <a href="Tutorial-Impl-Rust-Power.html"><code>power-of</code> example</a>.</p>
 <p>Edit the <code>Cargo.toml</code> file so it looks like this:</p>
 <pre><code class="language-toml">[package]
@@ -506,16 +543,13 @@ version = &quot;0.1.0&quot;
 edition = &quot;2018&quot;
 
 [dependencies]
-wit-bindgen-rust = { git = &quot;https://github.com/bytecodealliance/wit-bindgen.git, rev = &quot;60e3c5b41e616fee239304d92128e117dd9be0a7&quot; }
+wit-bindgen-rust = { git = &quot;https://github.com/bytecodealliance/wit-bindgen.git&quot;, rev = &quot;60e3c5b41e616fee239304d92128e117dd9be0a7&quot; }
 
 [lib]
 crate-type = [&quot;cdylib&quot;]
 </code></pre>
 <p>And, for the implementation, edit the <code>src/lib.rs</code> file and replace its contents with this:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>wit_bindgen_rust::export!(&quot;split.wit&quot;);
+<pre><code class="language-rust noplayground">wit_bindgen_rust::export!(&quot;split.wit&quot;);
 struct Split;
 use crate::split::Subphrase;
 
@@ -529,14 +563,13 @@ impl split::Split for Split {
                     str: s.to_string(),
                     idx: *idx as i32
                 };
-                *idx += (s.len() + delim.len()) as i32;
+                *idx += (s.0 + delim.0) as i32;
                 Some(current)
             })
             .collect()
     }
 } 
-<span class="boring">}
-</span></code></pre></pre>
+</code></pre>
 <p>Fortunately, with Rust, we have some nice language features that help make our code concise. Unlike in <a href="Tutorial-Impl-CPP-Split.html"><code>C/C++</code></a>, we don’t need to explicitly free the parameters. Due to Rust’s move semantics, they will be freed implicitly when the function ends. Allocation for the output vector is also managed “under the hood” by Rust’s robust data structures and runtime. Finally, the declaration of the Subphrase struct happens via the <code>wit_bindgen_rust::export macro</code>, so we don’t need to do it.</p>
 <p>Let’s compile the Wasm module now:</p>
 <pre><code class="language-bash">cargo wasi build --lib
